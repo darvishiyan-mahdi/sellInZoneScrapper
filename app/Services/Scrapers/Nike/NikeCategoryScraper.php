@@ -26,7 +26,7 @@ class NikeCategoryScraper {
     /**
      * Collect all product detail page URLs from Nike sale category using their API.
      *
-     * @param string|null $apiUrl Optional full API URL. If not provided, uses default sale category
+     * @param string|null $apiUrl Optional full API URL. If not provided, uses default sale category endpoint
      * @param int         $concurrency Number of API requests to fetch concurrently
      *
      * @return array Array of unique absolute product URLs
@@ -39,7 +39,8 @@ class NikeCategoryScraper {
 
         $productLinks = [];
 
-        // Build initial API URL
+        // Use provided API URL or build default endpoint
+        // Default endpoint: https://api.nike.com/discover/product_wall/v1/marketplace/CA/language/en-GB/consumerChannelId/d9a5bc42-4b9c-4976-858a-f159cf99c647?path=/ca/w/sale-3yaep&attributeIds=5b21a62a-0503-400c-8336-3ccfbff2a684&queryType=PRODUCTS&anchor=0&count=24
         $baseApiUrl = $apiUrl ?? $this->buildApiUrl(self::DEFAULT_PATH, self::DEFAULT_ATTRIBUTE_IDS, 0);
 
         usleep(500000);
@@ -427,10 +428,15 @@ class NikeCategoryScraper {
 
         try {
             if ( !isset($apiResponse['productGroupings']) || !is_array($apiResponse['productGroupings']) ) {
-                Log::warning('Invalid API response structure: missing productGroupings', [
+                Log::warning('Invalid API response structure: missing or invalid productGroupings', [
                     'response_keys' => array_keys($apiResponse),
                 ]);
 
+                return [];
+            }
+
+            // Check if productGroupings is empty
+            if ( empty($apiResponse['productGroupings']) ) {
                 return [];
             }
 
@@ -559,4 +565,6 @@ class NikeCategoryScraper {
         }
     }
 }
+
+
 
